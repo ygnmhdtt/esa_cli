@@ -95,3 +95,103 @@ func TestGetTeamMembers(t *testing.T) {
 	}
 	ts.Close()
 }
+
+func TestGetPosts(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		res := `{
+  "posts": [
+    {
+      "number": 1,
+      "name": "hi!",
+      "full_name": "日報/2015/05/09/hi! #api #dev",
+      "wip": true,
+      "body_md": "# Getting Started",
+      "body_html": "<h1 id=\"1-0-0\" name=\"1-0-0\">\n<a class=\"anchor\" href=\"#1-0-0\"><i class=\"fa fa-link\"></i><span class=\"hidden\" data-text=\"Getting Started\"> &gt; Getting Started</span></a>Getting Started</h1>\n",
+      "created_at": "2015-05-09T11:54:50+09:00",
+      "message": "Add Getting Started section",
+      "url": "https://docs.esa.io/posts/1",
+      "updated_at": "2015-05-09T11:54:51+09:00",
+      "tags": [
+        "api",
+        "dev"
+      ],
+      "category": "日報/2015/05/09",
+      "revision_number": 1,
+      "created_by": {
+        "name": "Atsuo Fukaya",
+        "screen_name": "fukayatsu",
+        "icon": "http://img.esa.io/uploads/production/users/1/icon/thumb_m_402685a258cf2a33c1d6c13a89adec92.png"
+      },
+      "updated_by": {
+        "name": "Atsuo Fukaya",
+        "screen_name": "fukayatsu",
+        "icon": "http://img.esa.io/uploads/production/users/1/icon/thumb_m_402685a258cf2a33c1d6c13a89adec92.png"
+      }
+    }
+  ],
+  "prev_page": null,
+  "next_page": null,
+  "total_count": 1,
+  "page": 1,
+  "per_page": 20,
+  "max_per_page": 100
+}`
+		fmt.Fprintf(w, res)
+	}))
+	os.Setenv("TEST_URL", ts.URL)
+	client := NewClient("", "docs")
+	posts, _ := client.GetPosts(1)
+	if posts.Posts[0].Number != 1 {
+		t.Fatalf("invalid data: %v", posts)
+	}
+	ts.Close()
+}
+
+func TestGetPost(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		res := `{
+  "number": 1,
+  "name": "hi!",
+  "full_name": "日報/2015/05/09/hi! #api #dev",
+  "wip": true,
+  "body_md": "# Getting Started",
+  "body_html": "<h1 id=\"1-0-0\" name=\"1-0-0\">\n<a class=\"anchor\" href=\"#1-0-0\"><i class=\"fa fa-link\"></i><span class=\"hidden\" data-text=\"Getting Started\"> &gt; Getting Started</span></a>Getting Started</h1>\n",
+  "created_at": "2015-05-09T11:54:50+09:00",
+  "message": "Add Getting Started section",
+  "url": "https://docs.esa.io/posts/1",
+  "updated_at": "2015-05-09T11:54:51+09:00",
+  "tags": [
+    "api",
+    "dev"
+  ],
+  "category": "日報/2015/05/09",
+  "revision_number": 1,
+  "created_by": {
+    "name": "Atsuo Fukaya",
+    "screen_name": "fukayatsu",
+    "icon": "http://img.esa.io/uploads/production/users/1/icon/thumb_m_402685a258cf2a33c1d6c13a89adec92.png"
+  },
+  "updated_by": {
+    "name": "Atsuo Fukaya",
+    "screen_name": "fukayatsu",
+    "icon": "http://img.esa.io/uploads/production/users/1/icon/thumb_m_402685a258cf2a33c1d6c13a89adec92.png"
+  },
+  "kind": "flow",
+  "comments_count": 1,
+  "tasks_count": 1,
+  "done_tasks_count": 1,
+  "stargazers_count": 1,
+  "watchers_count": 1,
+  "star": true,
+  "watch": true
+}`
+		fmt.Fprintf(w, res)
+	}))
+	os.Setenv("TEST_URL", ts.URL)
+	client := NewClient("", "docs")
+	post, _ := client.GetPost(1)
+	if post.Number != 1 {
+		t.Fatalf("invalid data: %v", post)
+	}
+	ts.Close()
+}

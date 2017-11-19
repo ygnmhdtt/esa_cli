@@ -56,38 +56,52 @@ type TeamMembers struct {
 	MaxPerPage int         `json:"max_per_page"`
 }
 
+type CreatedBy struct {
+	Name       string `json:"name"`
+	ScreenName string `json:"screen_name"`
+	Icon       string `json:"icon"`
+}
+
+type UpdatedBy struct {
+	Name       string `json:"name"`
+	ScreenName string `json:"screen_name"`
+	Icon       string `json:"icon"`
+}
+
 type Post struct {
-	Number         int       `json:"number"`
-	Name           string    `json:"name"`
-	FullName       string    `json:"full_name"`
-	Wip            bool      `json:"wip"`
-	BodyMd         string    `json:"body_md"`
-	BodyHTML       string    `json:"body_html"`
-	CreatedAt      time.Time `json:"created_at"`
-	Message        string    `json:"message"`
-	URL            string    `json:"url"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	Tags           []string  `json:"tags"`
-	Category       string    `json:"category"`
-	RevisionNumber int       `json:"revision_number"`
-	CreatedBy      struct {
-		Name       string `json:"name"`
-		ScreenName string `json:"screen_name"`
-		Icon       string `json:"icon"`
-	} `json:"created_by"`
-	UpdatedBy struct {
-		Name       string `json:"name"`
-		ScreenName string `json:"screen_name"`
-		Icon       string `json:"icon"`
-	} `json:"updated_by"`
-	Kind            string `json:"kind"`
-	CommentsCount   int    `json:"comments_count"`
-	TasksCount      int    `json:"tasks_count"`
-	DoneTasksCount  int    `json:"done_tasks_count"`
-	StargazersCount int    `json:"stargazers_count"`
-	WatchersCount   int    `json:"watchers_count"`
-	Star            bool   `json:"star"`
-	Watch           bool   `json:"watch"`
+	Number          int       `json:"number"`
+	Name            string    `json:"name"`
+	FullName        string    `json:"full_name"`
+	Wip             bool      `json:"wip"`
+	BodyMd          string    `json:"body_md"`
+	BodyHTML        string    `json:"body_html"`
+	CreatedAt       time.Time `json:"created_at"`
+	Message         string    `json:"message"`
+	URL             string    `json:"url"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	Tags            []string  `json:"tags"`
+	Category        string    `json:"category"`
+	RevisionNumber  int       `json:"revision_number"`
+	CreatedBy       CreatedBy `json:"created_by"`
+	UpdatedBy       UpdatedBy `json:"updated_by"`
+	Kind            string    `json:"kind"`
+	CommentsCount   int       `json:"comments_count"`
+	TasksCount      int       `json:"tasks_count"`
+	DoneTasksCount  int       `json:"done_tasks_count"`
+	StargazersCount int       `json:"stargazers_count"`
+	WatchersCount   int       `json:"watchers_count"`
+	Star            bool      `json:"star"`
+	Watch           bool      `json:"watch"`
+}
+
+type Posts struct {
+	Posts      []Post      `json:"posts"`
+	PrevPage   interface{} `json:"prev_page"`
+	NextPage   int         `json:"next_page"`
+	TotalCount int         `json:"total_count"`
+	Page       int         `json:"page"`
+	PerPage    int         `json:"per_page"`
+	MaxPerPage int         `json:"max_per_page"`
 }
 
 func decodeBody(resp *http.Response, out interface{}) error {
@@ -168,7 +182,22 @@ func (c *Client_V1) GetTeamMembers(page int) (*TeamMembers, error) {
 	return &teamMembers, err
 }
 
-func (c *Client_V1) GetPost(id string) (*Post, error) {
+func (c *Client_V1) GetPosts(page int, q ...string) (*Posts, error) {
+	spath := fmt.Sprintf("/teams/mmmcorp/posts?q=%v&page=%v", q, page)
+	req, _ := c.newRequest("GET", spath, nil)
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	var posts Posts
+	if err := decodeBody(res, &posts); err != nil {
+		return nil, err
+	}
+	return &posts, err
+}
+
+func (c *Client_V1) GetPost(id int) (*Post, error) {
 	spath := fmt.Sprintf("/teams/mmmcorp/posts/%v", id)
 	req, _ := c.newRequest("GET", spath, nil)
 	res, err := c.HTTPClient.Do(req)
