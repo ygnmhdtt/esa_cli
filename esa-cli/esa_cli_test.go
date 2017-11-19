@@ -195,3 +195,64 @@ func TestGetPost(t *testing.T) {
 	}
 	ts.Close()
 }
+
+func TestCreatePost(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		res := `{
+  "number": 5,
+  "name": "hi!",
+  "full_name": "dev/2015/05/10/hi! #api #dev",
+  "wip": false,
+  "body_md": "# Getting Started\n",
+  "body_html": "<h1 id=\"1-0-0\" name=\"1-0-0\">\n<a class=\"anchor\" href=\"#1-0-0\"><i class=\"fa fa-link\"></i><span class=\"hidden\" data-text=\"Getting Started\"> &gt; Getting Started</span></a>Getting Started</h1>\n",
+  "created_at": "2015-05-09T12:12:37+09:00",
+  "message": "Add Getting Started section",
+  "url": "https://docs.esa.io/posts/5",
+  "updated_at": "2015-05-09T12:12:37+09:00",
+  "tags": [
+    "api",
+    "dev"
+  ],
+  "category": "dev/2015/05/10",
+  "revision_number": 1,
+  "created_by": {
+    "name": "Atsuo Fukaya",
+    "screen_name": "fukayatsu",
+    "icon": "http://img.esa.io/uploads/production/users/1/icon/thumb_m_402685a258cf2a33c1d6c13a89adec92.png"
+  },
+  "updated_by": {
+    "name": "Atsuo Fukaya",
+    "screen_name": "fukayatsu",
+    "icon": "http://img.esa.io/uploads/production/users/1/icon/thumb_m_402685a258cf2a33c1d6c13a89adec92.png"
+  },
+  "kind": "flow",
+  "comments_count": 0,
+  "tasks_count": 0,
+  "done_tasks_count": 0,
+  "stargazers_count": 0,
+  "watchers_count": 1,
+  "star": false,
+  "watch": false
+}`
+		fmt.Fprintf(w, res)
+	}))
+	os.Setenv("TEST_URL", ts.URL)
+	client := NewClient("", "docs")
+
+	// empty name
+	post := PostCreate{}
+	_, err := client.CreatePost(&post)
+	if err == nil {
+		t.Fatalf("err was nil")
+	}
+
+	// valid
+	post = PostCreate{}
+	post.Post.Name = "test"
+	_, err = client.CreatePost(&post)
+	if err != nil {
+		t.Fatalf("err occured: %v", err)
+	}
+	ts.Close()
+}
