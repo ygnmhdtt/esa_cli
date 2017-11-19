@@ -182,7 +182,22 @@ func (c *Client_V1) GetTeamMembers(page int) (*TeamMembers, error) {
 	return &teamMembers, err
 }
 
-func (c *Client_V1) GetPost(id string) (*Post, error) {
+func (c *Client_V1) GetPosts(page int, q ...string) (*Posts, error) {
+	spath := fmt.Sprintf("/teams/mmmcorp/posts?q=%v&page=%v", q, page)
+	req, _ := c.newRequest("GET", spath, nil)
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	var posts Posts
+	if err := decodeBody(res, &posts); err != nil {
+		return nil, err
+	}
+	return &posts, err
+}
+
+func (c *Client_V1) GetPost(id int) (*Post, error) {
 	spath := fmt.Sprintf("/teams/mmmcorp/posts/%v", id)
 	req, _ := c.newRequest("GET", spath, nil)
 	res, err := c.HTTPClient.Do(req)
