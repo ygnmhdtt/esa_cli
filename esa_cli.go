@@ -1,9 +1,11 @@
 package esa_cli
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -68,7 +70,7 @@ type UpdatedBy struct {
 	Icon       string `json:"icon"`
 }
 
-type Post struct {
+type PostGet struct {
 	Number          int       `json:"number"`
 	Name            string    `json:"name"`
 	FullName        string    `json:"full_name"`
@@ -95,13 +97,24 @@ type Post struct {
 }
 
 type Posts struct {
-	Posts      []Post      `json:"posts"`
+	Posts      []PostGet   `json:"posts"`
 	PrevPage   interface{} `json:"prev_page"`
 	NextPage   int         `json:"next_page"`
 	TotalCount int         `json:"total_count"`
 	Page       int         `json:"page"`
 	PerPage    int         `json:"per_page"`
 	MaxPerPage int         `json:"max_per_page"`
+}
+
+type PostCreate struct {
+	Post struct {
+		Name     string   `json:"name"`
+		BodyMd   string   `json:"body_md"`
+		Tags     []string `json:"tags"`
+		Category string   `json:"category"`
+		Wip      bool     `json:"wip"`
+		Message  string   `json:"message"`
+	} `json:"post"`
 }
 
 type Categories struct {
@@ -232,7 +245,7 @@ func (c *Client_V1) GetPosts(page int, q ...string) (*Posts, error) {
 	return &posts, err
 }
 
-func (c *Client_V1) GetPost(id int) (*Post, error) {
+func (c *Client_V1) GetPost(id int) (*PostGet, error) {
 	spath := fmt.Sprintf("/teams/%v/posts/%v", c.TeamName, id)
 	req, _ := c.newRequest("GET", spath, nil)
 	res, err := c.HTTPClient.Do(req)
@@ -240,11 +253,34 @@ func (c *Client_V1) GetPost(id int) (*Post, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var post Post
+	var post PostGet
 	if err := decodeBody(res, &post); err != nil {
 		return nil, err
 	}
 	return &post, err
+}
+
+func (c *Client_V1) CreatePost(post *PostCreate) (*PostGet, error) {
+	if post.Post.Name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+	spath := fmt.Sprintf("/teams/$v/posts", c.TeamName)
+	j, _ := json.Marshal(&post)
+	req, _ := c.newRequest("POST", spath, bytes.NewBuffer([]byte(j)))
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusCreated {
+		b, _ := ioutil.ReadAll(res.Body)
+		return nil, fmt.Errorf(string(b))
+	}
+	var cpost PostGet
+	if err := decodeBody(res, &cpost); err != nil {
+		return nil, err
+	}
+	return &cpost, nil
 }
 
 func (c *Client_V1) GetCategories() (*Categories, error) {
