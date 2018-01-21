@@ -115,6 +115,30 @@ type Category struct {
 	Children []Category `json:"children,omitempty"`
 }
 
+func (c Category) Tree() []string {
+	if c.Post {
+		return nil
+	}
+	var trees []string
+
+	if len(c.Children) == 0 {
+		trees = append(trees, c.Name+"/")
+		return trees
+	}
+	for _, child := range c.Children {
+		trees = append(trees, c.Append(child.Tree())...)
+	}
+	return trees
+}
+
+func (c Category) Append(trees []string) []string {
+	var res []string
+	for _, tree := range trees {
+		res = append(res, c.Name+"/"+tree)
+	}
+	return res
+}
+
 func decodeBody(resp *http.Response, out interface{}) error {
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
@@ -224,7 +248,7 @@ func (c *Client_V1) GetPost(id int) (*Post, error) {
 }
 
 func (c *Client_V1) GetCategories() (*Categories, error) {
-	spath := fmt.Sprintf("/teams/%v/categories/%v", c.TeamName)
+	spath := fmt.Sprintf("/teams/%v/categories", c.TeamName)
 	req, _ := c.newRequest("GET", spath, nil)
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -235,5 +259,5 @@ func (c *Client_V1) GetCategories() (*Categories, error) {
 	if err := decodeBody(res, &categories); err != nil {
 		return nil, err
 	}
-	return &categories, err
+	return &categories, nil
 }
