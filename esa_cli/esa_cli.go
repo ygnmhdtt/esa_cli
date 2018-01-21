@@ -104,6 +104,17 @@ type Posts struct {
 	MaxPerPage int         `json:"max_per_page"`
 }
 
+type Categories struct {
+	Categories []Category
+}
+
+type Category struct {
+	Name     string     `json:"name"`
+	Post     bool       `json:"post,omitempty"`
+	Count    int        `json:"count,omitempty"`
+	Children []Category `json:"children,omitempty"`
+}
+
 func decodeBody(resp *http.Response, out interface{}) error {
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
