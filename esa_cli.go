@@ -222,3 +222,18 @@ func (c *Client_V1) GetPost(id int) (*Post, error) {
 	}
 	return &post, err
 }
+
+func (c *Client_V1) GetCategories() (*Categories, error) {
+	spath := fmt.Sprintf("/teams/%v/categories/%v", c.TeamName)
+	req, _ := c.newRequest("GET", spath, nil)
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	var categories Categories
+	if err := decodeBody(res, &categories); err != nil {
+		return nil, err
+	}
+	return &categories, err
+}
