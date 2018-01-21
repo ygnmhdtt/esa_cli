@@ -218,7 +218,7 @@ func (c *Client_V1) GetTeamMembers(page int) (*TeamMembers, error) {
 }
 
 func (c *Client_V1) GetPosts(page int, q ...string) (*Posts, error) {
-	spath := fmt.Sprintf("/teams/mmmcorp/posts?q=%v&page=%v", q, page)
+	spath := fmt.Sprintf("/teams/%v/posts?q=%v&page=%v", c.TeamName, q, page)
 	req, _ := c.newRequest("GET", spath, nil)
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -233,7 +233,7 @@ func (c *Client_V1) GetPosts(page int, q ...string) (*Posts, error) {
 }
 
 func (c *Client_V1) GetPost(id int) (*Post, error) {
-	spath := fmt.Sprintf("/teams/mmmcorp/posts/%v", id)
+	spath := fmt.Sprintf("/teams/%v/posts/%v", c.TeamName, id)
 	req, _ := c.newRequest("GET", spath, nil)
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
